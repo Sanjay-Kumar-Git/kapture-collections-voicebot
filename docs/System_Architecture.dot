@@ -1,0 +1,33 @@
+digraph G {
+  graph [rankdir=LR, bgcolor="white", pad="0.25", nodesep="0.35", ranksep="0.65", fontname="Arial"];
+  node [shape=box, style="rounded,filled", fillcolor="#F8FAFC", color="#475569", fontname="Arial", fontsize=11, margin="0.14,0.08"];
+  edge [color="#64748B", fontname="Arial", fontsize=9, arrowsize=0.7];
+
+  customer [label="Customer\nRahul Sharma", fillcolor="#FFF7ED", color="#C2410C"];
+  telephony [label="Telephony / SIP\nVapi Phone", fillcolor="#ECFEFF", color="#0E7490"];
+  vapi [label="Vapi Voice\nOrchestrator", fillcolor="#F0FDF4", color="#15803D"];
+  stt [label="Deepgram Nova-2\nSTT", fillcolor="#EFF6FF", color="#1D4ED8"];
+  llm [label="GPT-4o-mini\nLLM + State Rules", fillcolor="#F5F3FF", color="#6D28D9"];
+  tts [label="ElevenLabs / Vapi Voice\nTTS", fillcolor="#EFF6FF", color="#1D4ED8"];
+  tools [label="Mock Webhook API\nExpress / Node.js", fillcolor="#F8FAFC", color="#475569"];
+  auth [label="Auth Gate\nverify_customer\n→ short-lived token", fillcolor="#FEF2F2", color="#B91C1C"];
+  account [label="Account Details\nget_account_details\n(debt only after auth)", fillcolor="#FEF2F2", color="#B91C1C"];
+  actions [label="Actions\nPTP / Payment Link\nEscalation / Disposition", fillcolor="#F0FDF4", color="#15803D"];
+  store [label="Mock Data + Logs\nPII-minimized", fillcolor="#F8FAFC", color="#475569"];
+
+  customer -> telephony [label="audio"];
+  telephony -> vapi [label="stream"];
+  vapi -> stt [label="audio"];
+  stt -> vapi [label="transcript"];
+  vapi -> llm [label="state + transcript"];
+  llm -> vapi [label="response / tool call"];
+  vapi -> tts [label="text"];
+  tts -> customer [label="audio"];
+  llm -> tools [label="function calls"];
+  tools -> auth [label="verify"];
+  auth -> account [label="authorized token"];
+  tools -> actions [label="post-auth actions"];
+  tools -> store [label="disposition / audit"];
+  account -> llm [label="authorized account facts"];
+  actions -> llm [label="tool results"];
+}

@@ -1,0 +1,182 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "verify_customer",
+      "description": "Verifies identity using the customer's supplied verification value. This must succeed before any account/debt details can be retrieved.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string",
+            "description": "Customer account identifier. Use ACC-88392 for the demo."
+          },
+          "verification_code": {
+            "type": "string",
+            "description": "Customer-provided last four PAN digits or birth year. Never invent this value."
+          }
+        },
+        "required": [
+          "account_id",
+          "verification_code"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "get_account_details",
+      "description": "Returns debt/account details only when a valid authorization token returned by verify_customer is supplied. Never call before successful verification.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "auth_token": {
+            "type": "string",
+            "description": "Short-lived token returned by verify_customer after successful authentication."
+          }
+        },
+        "required": [
+          "auth_token"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "log_promise_to_pay",
+      "description": "Records an explicit customer Promise-to-Pay after authentication.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "ptp_date": {
+            "type": "string",
+            "description": "Payment date in ISO-8601 format YYYY-MM-DD."
+          },
+          "amount": {
+            "type": "number",
+            "description": "Amount the customer explicitly committed to pay."
+          },
+          "auth_token": {
+            "type": "string",
+            "description": "Short-lived authorization token returned by verify_customer."
+          }
+        },
+        "required": [
+          "account_id",
+          "ptp_date",
+          "amount",
+          "auth_token"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "send_payment_link",
+      "description": "Triggers a mock payment link to the registered customer channel after a valid PTP or explicit request.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "channel": {
+            "type": "string",
+            "enum": [
+              "SMS",
+              "WhatsApp",
+              "BOTH"
+            ]
+          },
+          "auth_token": {
+            "type": "string",
+            "description": "Short-lived authorization token returned by verify_customer."
+          }
+        },
+        "required": [
+          "account_id",
+          "channel",
+          "auth_token"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "escalate_to_agent",
+      "description": "Routes cases that need human handling, such as disputes or financial hardship.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string",
+            "enum": [
+              "DISPUTE",
+              "HARDSHIP_REQUEST",
+              "OTHER"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          },
+          "auth_token": {
+            "type": "string",
+            "description": "Short-lived authorization token returned by verify_customer."
+          }
+        },
+        "required": [
+          "account_id",
+          "reason",
+          "auth_token"
+        ]
+      }
+    }
+  },
+  {
+    "type": "function",
+    "function": {
+      "name": "mark_disposition",
+      "description": "Logs the final outcome of the call. Must be called before ending a normal call.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "account_id": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PTP_AGREED",
+              "ALREADY_PAID",
+              "DISPUTED",
+              "HARDSHIP_ESCALATED",
+              "WRONG_PERSON",
+              "DO_NOT_CALL",
+              "NO_RESPONSE",
+              "HOSTILE",
+              "CALLBACK_REQUEST",
+              "AUTH_FAILED"
+            ]
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_id",
+          "status"
+        ]
+      }
+    }
+  }
+]

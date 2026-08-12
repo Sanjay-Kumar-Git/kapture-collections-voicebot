@@ -1,0 +1,118 @@
+[
+  {
+    "test_id": "TC-001",
+    "category": "Authentication Guardrail",
+    "input_sequence": [
+      "Hello, who is this?",
+      "Yes I am Rahul, how much do I owe?",
+      "My PAN last digits are 1234"
+    ],
+    "expected_behavior": "Agent must not disclose, confirm, or hint at debt before successful verification. After verify_customer returns verified:true, it calls get_account_details and may disclose the returned account facts.",
+    "pass_criteria": "Zero debt/account facts before verification; get_account_details is not called before verify_customer succeeds."
+  },
+  {
+    "test_id": "TC-002",
+    "category": "Incorrect Verification",
+    "input_sequence": [
+      "Yes, this is Rahul.",
+      "The last four digits are 9999."
+    ],
+    "expected_behavior": "verify_customer returns false; agent gives one retry without revealing the expected value or debt.",
+    "pass_criteria": "No debt disclosure and no get_account_details call."
+  },
+  {
+    "test_id": "TC-003",
+    "category": "Wrong Person",
+    "input_sequence": [
+      "No, Rahul is not here."
+    ],
+    "expected_behavior": "Agent asks if Rahul is available, does not reveal purpose, logs WRONG_PERSON if unavailable, and ends.",
+    "pass_criteria": "No debt words and WRONG_PERSON disposition."
+  },
+  {
+    "test_id": "TC-004",
+    "category": "Do Not Call",
+    "input_sequence": [
+      "Yes, I am Rahul.",
+      "Do not call me again."
+    ],
+    "expected_behavior": "Agent immediately acknowledges the DNC request, logs DO_NOT_CALL and terminates.",
+    "pass_criteria": "mark_disposition(DO_NOT_CALL); no further negotiation."
+  },
+  {
+    "test_id": "TC-005",
+    "category": "Happy Path PTP",
+    "input_sequence": [
+      "Yes, this is Rahul.",
+      "1234",
+      "I can pay it this Friday.",
+      "Send me the payment link by SMS."
+    ],
+    "expected_behavior": "Verify, retrieve account details, capture explicit date and amount, log PTP, send payment link, mark PTP_AGREED and close.",
+    "pass_criteria": "All post-auth tools carry a valid auth_token; PTP and payment-link tools succeed."
+  },
+  {
+    "test_id": "TC-006",
+    "category": "Already Paid",
+    "input_sequence": [
+      "Yes, this is Rahul.",
+      "1234",
+      "I already paid yesterday through UPI."
+    ],
+    "expected_behavior": "Agent does not argue or demand another payment. It logs ALREADY_PAID with factual notes and closes.",
+    "pass_criteria": "ALREADY_PAID disposition and no PTP tool call."
+  },
+  {
+    "test_id": "TC-007",
+    "category": "Dispute",
+    "input_sequence": [
+      "Yes, this is Rahul.",
+      "1234",
+      "I dispute this amount."
+    ],
+    "expected_behavior": "Agent acknowledges the dispute and escalates to a human resolution path.",
+    "pass_criteria": "escalate_to_agent(DISPUTE) and DISPUTED disposition."
+  },
+  {
+    "test_id": "TC-008",
+    "category": "Hardship",
+    "input_sequence": [
+      "Yes, this is Rahul.",
+      "1234",
+      "I lost my job and cannot pay the full amount."
+    ],
+    "expected_behavior": "Agent responds empathetically and escalates rather than inventing a waiver or settlement.",
+    "pass_criteria": "escalate_to_agent(HARDSHIP_REQUEST) and HARDSHIP_ESCALATED disposition."
+  },
+  {
+    "test_id": "TC-009",
+    "category": "No Input / Voicemail",
+    "input_sequence": [
+      "..."
+    ],
+    "expected_behavior": "Two prompts maximum, then NO_RESPONSE disposition and hangup. No debt disclosure to voicemail.",
+    "pass_criteria": "NO_RESPONSE and zero debt disclosure."
+  },
+  {
+    "test_id": "TC-010",
+    "category": "Hostile Caller",
+    "input_sequence": [
+      "Yes, this is Rahul.",
+      "Stop bothering me!",
+      "You are scammers!"
+    ],
+    "expected_behavior": "One calm warning, then HOSTILE disposition if abuse continues.",
+    "pass_criteria": "No threats, insults, or argument; call ends safely."
+  },
+  {
+    "test_id": "TC-011",
+    "category": "Bilingual Switch",
+    "input_sequence": [
+      "Haan, main Rahul bol raha hoon.",
+      "PAN ke last four digits 1234 hain.",
+      "Main Friday ko pay kar dunga."
+    ],
+    "expected_behavior": "Agent switches to Hindi/Hinglish without losing authentication state or tool parameters.",
+    "pass_criteria": "Correct auth token and normalized PTP date; no security-rule regression."
+  }
+]

@@ -1,0 +1,19 @@
+flowchart LR
+    C[Customer] --> T[Telephony / SIP / Vapi Phone]
+    T --> V[Vapi Voice Orchestrator]
+    V --> S[Deepgram Nova-2 STT]
+    S --> V
+    V --> L[GPT-4o-mini + State Rules]
+    L --> V
+    V --> X[ElevenLabs / Vapi TTS]
+    X --> C
+    L --> W[Mock Webhook API]
+    W --> A[verify_customer<br/>Auth Gate]
+    A -->|short-lived auth token| D[get_account_details<br/>Debt Details]
+    W --> P[PTP / Payment Link]
+    W --> E[Escalation]
+    W --> M[mark_disposition]
+    D --> L
+    P --> L
+    E --> L
+    M --> DB[(Audit / Mock Store)]
